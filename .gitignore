@@ -1,0 +1,20 @@
+# Gleam build artifacts
+*.beam
+*.ez
+/build
+erl_crash.dump
+
+# macOS
+.DS_Store
+
+# Agent-generated local files
+AGENTS.md
+CLAUDE.md
+SKILLS.md
+.claude/
+.codex/
+
+# Reference implementations (local clones)
+_refs/*
+!_refs/refs.toml
+!_refs/refs.lock.toml

@@ -1,0 +1,11 @@
+# Reference implementations used during design.
+#
+# This file is tracked.
+# The cloned repos under `_refs/<name>` are ignored by git.
+
+# [[ref]]
+# name = "example"
+# url = "https://github.com/org/repo.git"
+# tag = "v1.2.3"
+# rev = "..." # optional, use when no tag exists
+

@@ -1,0 +1,20 @@
+name = "gleam_contracts"
+version = "0.1.0"
+description = "Build-time module contract verification for Gleam — enforce that paired modules stay in sync."
+licences = ["Apache-2.0"]
+repository = { type = "github", user = "bbopen", repo = "gleam_contracts" }
+gleam = ">= 1.14.0"
+
+[dependencies]
+gleam_stdlib = ">= 0.69.0"
+gleam_json = ">= 2.0.0 and < 3.0.0"
+gleam_package_interface = ">= 3.0.0 and < 4.0.0"
+simplifile = ">= 2.0.0 and < 3.0.0"
+
+[dev-dependencies]
+startest = ">= 0.8.0"
+
+[documentation]
+pages = [
+  { title = "Technical Specification", path = "SPEC.md" },
+]
