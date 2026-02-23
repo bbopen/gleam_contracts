@@ -13,5 +13,39 @@ gleam add gleam_contracts
 
 ## Usage
 
-See [SPEC.md](SPEC.md) for the complete technical specification.
+Create a contract check entrypoint in your package:
 
+```gleam
+import gleam_contracts
+import gleam_contracts/rule
+
+pub fn main() {
+  gleam_contracts.check(
+    interface_path: "build/dev/docs/my_package/package-interface.json",
+    rules: [
+      gleam_contracts.mirror_rule(
+        source: "my_package/headless/button",
+        target: "my_package/button",
+        prefix_params: [rule.Labeled(label: "context")],
+      )
+        |> gleam_contracts.with_exceptions(exceptions: ["button"]),
+      gleam_contracts.shared_types(
+        module_a: "my_package/headless/button",
+        module_b: "my_package/button",
+        type_names: ["ButtonConfig"],
+      ),
+    ],
+  )
+}
+```
+
+Then run it in your build chain:
+
+```sh
+gleam export package-interface --out build/dev/docs/my_package/package-interface.json
+gleam run -m contract_test
+```
+
+## Spec
+
+See [SPEC.md](SPEC.md) for the full technical specification.

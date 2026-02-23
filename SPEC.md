@@ -21,7 +21,7 @@ Today this is caught by manual review or by users who discover the gap.
 - Run as a verification gate in CI, like `gleam format --check` or grep-gates
 - Provide clear, actionable error messages identifying exactly which function
   is missing or which parameter doesn't match
-- Work with any Gleam package, not just weft_lustre_ui
+- Work with any Gleam package
 - Stay pure Gleam, cross-target compatible
 
 ## Non-Goals
@@ -94,6 +94,12 @@ pub type ExportSpec {
   )
 }
 
+/// Errors produced while loading package-interface JSON.
+pub type LoadError {
+  ReadError(path: String, reason: simplifile.FileError)
+  DecodeError(path: String, reason: json.DecodeError)
+}
+
 /// A single contract violation.
 pub type Violation {
   /// Function exists in source but not in target.
@@ -132,6 +138,11 @@ pub type Violation {
   ModuleNotFound(
     module: String,
   )
+  /// Package-interface file could not be loaded.
+  InterfaceLoadFailure(
+    path: String,
+    error: LoadError,
+  )
 }
 
 /// Verification result.
@@ -145,7 +156,7 @@ pub type ContractResult =
 /// Load and decode a package interface from a JSON file path.
 pub fn load_package_interface(
   path path: String,
-) -> Result(PackageInterface, String)
+) -> Result(PackageInterface, LoadError)
 
 /// Verify a list of rules against a package interface.
 /// Returns Ok(Nil) if all rules pass, or Error with a list
@@ -159,6 +170,12 @@ pub fn verify(
 pub fn format_violations(
   violations violations: List(Violation),
 ) -> String
+
+/// Load interface and verify rules in one call.
+pub fn check_result(
+  interface_path interface_path: String,
+  rules rules: List(Rule),
+) -> ContractResult
 ```
 
 ### Rule Constructors
@@ -168,7 +185,7 @@ pub fn format_violations(
 /// public functions, each gaining the specified prefix parameters.
 ///
 /// Example: headless badge -> styled badge, where styled adds
-/// a leading `theme` parameter.
+/// a leading `context` parameter.
 pub fn mirror_rule(
   source source: String,
   target target: String,
@@ -200,13 +217,10 @@ pub fn shared_types(
 ### Convenience
 
 ```gleam
-/// Shorthand for [Labeled("theme")] — the common prefix for
-/// styled wrappers.
-pub fn theme_prefix() -> List(ParamSpec)
-
-/// Load interface from default path and verify rules in one call.
-/// Exits with code 1 and prints violations if any are found.
-/// Intended for use in scripts/check.sh.
+/// Print violations for terminal usage.
+///
+/// `check` is a convenience wrapper around `check_result`.
+/// It does not force a process exit.
 pub fn check(
   interface_path interface_path: String,
   rules rules: List(Rule),
@@ -231,6 +245,7 @@ creates a verification entry point:
 ```gleam
 // test/contract_test.gleam (or a standalone script)
 import gleam_contracts
+import gleam_contracts/rule
 
 pub fn main() {
   gleam_contracts.check(
@@ -239,12 +254,12 @@ pub fn main() {
       gleam_contracts.mirror_rule(
         source: "my_package/headless/badge",
         target: "my_package/badge",
-        prefix_params: gleam_contracts.theme_prefix(),
+        prefix_params: [rule.Labeled(label: "context")],
       ),
       gleam_contracts.mirror_rule(
         source: "my_package/headless/button",
         target: "my_package/button",
-        prefix_params: gleam_contracts.theme_prefix(),
+        prefix_params: [rule.Labeled(label: "context")],
       )
         |> gleam_contracts.with_exceptions(exceptions: ["button"]),
     ],
@@ -282,13 +297,13 @@ pub fn contract_tests() {
 
 ## MirrorRule Semantics
 
-Given `MirrorRule(source: "a/headless/foo", target: "a/foo", prefix_params: [Labeled("theme")], exceptions: [])`:
+Given `MirrorRule(source: "a/headless/foo", target: "a/foo", prefix_params: [Labeled("context")], exceptions: [])`:
 
 1. For every public function `f` in `a/headless/foo`:
    - `a/foo` must have a public function also named `f`
    - If `f` is in `exceptions`: only existence is checked, not parameters
    - Otherwise: `a/foo.f`'s parameter labels must equal
-     `["theme"] ++ labels_of(a/headless/foo.f)`
+     `["context"] ++ labels_of(a/headless/foo.f)`
 
 2. Extra functions in the target (not present in source) are allowed.
    The target is a superset, not an exact mirror.
@@ -301,15 +316,15 @@ Given `MirrorRule(source: "a/headless/foo", target: "a/foo", prefix_params: [Lab
 Violations produce messages like:
 
 ```
-FAIL: weft_lustre_ui/badge is missing function "badge_variant"
-      from weft_lustre_ui/headless/badge
+FAIL: my_package/badge is missing function "badge_variant"
+      from my_package/headless/badge
 
-FAIL: weft_lustre_ui/button.button has parameter mismatch
-      expected: [theme, config, label]
-      actual:   [theme, config, child]
+FAIL: my_package/button.button has parameter mismatch
+      expected: [context, config, label]
+      actual:   [context, config, child]
 
-FAIL: weft_lustre_ui/toggle is missing type "ToggleConfig"
-      from weft_lustre_ui/headless/toggle
+FAIL: my_package/toggle is missing type "ToggleConfig"
+      from my_package/headless/toggle
 ```
 
 ## Verification
@@ -336,4 +351,4 @@ bash scripts/check.sh
 - format_violations: produces readable output
 - load_package_interface: valid JSON -> Ok(interface)
 - load_package_interface: invalid path -> Error
-- Integration: real package-interface.json from weft_lustre_ui
+- check_result: load failure -> InterfaceLoadFailure
