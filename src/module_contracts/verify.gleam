@@ -12,11 +12,11 @@ import gleam/package_interface.{
   TypeDefinition, Variable,
 }
 import gleam/string
-import gleam_contracts/rule.{
+import module_contracts/rule.{
   type ExportSpec, type ParamSpec, type Rule, ExportSpec, Labeled, MirrorRule,
   RequireExports, SharedTypes, Unlabeled,
 }
-import gleam_contracts/violation.{
+import module_contracts/violation.{
   type Violation, MissingExport, MissingFunction, MissingType, ModuleNotFound,
   ParameterMismatch, TypeMismatch,
 }

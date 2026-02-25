@@ -1,4 +1,4 @@
-# gleam_contracts Specification
+# module_contracts Specification
 
 Build-time module contract verification for Gleam. Reads the compiler's
 `package-interface` JSON and checks that paired modules (e.g. headless/styled
@@ -230,38 +230,38 @@ pub fn check(
 ## Module Layout
 
 ```
-src/gleam_contracts.gleam            — public API, re-exports
-src/gleam_contracts/rule.gleam       — Rule type + constructors
-src/gleam_contracts/verify.gleam     — verification engine
-src/gleam_contracts/violation.gleam  — Violation type + formatter
-src/gleam_contracts/loader.gleam     — package interface JSON loading
+src/module_contracts.gleam            — public API, re-exports
+src/module_contracts/rule.gleam       — Rule type + constructors
+src/module_contracts/verify.gleam     — verification engine
+src/module_contracts/violation.gleam  — Violation type + formatter
+src/module_contracts/loader.gleam     — package interface JSON loading
 ```
 
 ## Usage Pattern
 
-A consuming project adds `gleam_contracts` as a dev dependency, then
+A consuming project adds `module_contracts` as a dev dependency, then
 creates a verification entry point:
 
 ```gleam
 // test/contract_test.gleam (or a standalone script)
-import gleam_contracts
-import gleam_contracts/rule
+import module_contracts
+import module_contracts/rule
 
 pub fn main() {
-  gleam_contracts.check(
+  module_contracts.check(
     interface_path: "build/dev/docs/my_package/package-interface.json",
     rules: [
-      gleam_contracts.mirror_rule(
+      module_contracts.mirror_rule(
         source: "my_package/headless/badge",
         target: "my_package/badge",
         prefix_params: [rule.Labeled(label: "context")],
       ),
-      gleam_contracts.mirror_rule(
+      module_contracts.mirror_rule(
         source: "my_package/headless/button",
         target: "my_package/button",
         prefix_params: [rule.Labeled(label: "context")],
       )
-        |> gleam_contracts.with_exceptions(exceptions: ["button"]),
+        |> module_contracts.with_exceptions(exceptions: ["button"]),
     ],
   )
 }
@@ -277,18 +277,18 @@ gleam run -m contract_test
 Or as a startest test:
 
 ```gleam
-import gleam_contracts
+import module_contracts
 import startest.{describe, it}
 import startest/expect
 
 pub fn contract_tests() {
   describe("module contracts", [
     it("headless/styled modules stay in sync", fn() {
-      let assert Ok(interface) = gleam_contracts.load_package_interface(
+      let assert Ok(interface) = module_contracts.load_package_interface(
         path: "build/dev/docs/my_package/package-interface.json",
       )
 
-      gleam_contracts.verify(interface: interface, rules: my_rules())
+      module_contracts.verify(interface: interface, rules: my_rules())
       |> expect.to_be_ok
     }),
   ])
