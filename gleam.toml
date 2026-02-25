@@ -1,8 +1,8 @@
-name = "gleam_contracts"
+name = "module_contracts"
 version = "0.1.0"
 description = "Build-time module contract verification for Gleam — enforce that paired modules stay in sync."
 licences = ["Apache-2.0"]
-repository = { type = "github", user = "bbopen", repo = "gleam_contracts" }
+repository = { type = "github", user = "bbopen", repo = "module_contracts" }
 gleam = ">= 1.14.0"
 
 [dependencies]

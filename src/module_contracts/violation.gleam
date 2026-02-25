@@ -3,7 +3,7 @@
 import gleam/int
 import gleam/list
 import gleam/string
-import gleam_contracts/loader.{type LoadError}
+import module_contracts/loader.{type LoadError}
 
 /// A single contract violation.
 pub type Violation {

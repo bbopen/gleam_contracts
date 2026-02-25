@@ -3,10 +3,10 @@
 import gleam/io
 import gleam/package_interface.{type Package}
 import gleam/result
-import gleam_contracts/loader
-import gleam_contracts/rule
-import gleam_contracts/verify as contract_verify
-import gleam_contracts/violation
+import module_contracts/loader
+import module_contracts/rule
+import module_contracts/verify as contract_verify
+import module_contracts/violation
 
 /// Decoded package-interface model exported by the compiler.
 pub type PackageInterface =
